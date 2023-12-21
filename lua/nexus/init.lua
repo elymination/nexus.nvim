@@ -161,7 +161,7 @@ function M.toggle()
     vim.api.nvim_buf_set_keymap(bufnr, "n", "7", "<Cmd>lua require('nexus').select_menu_item_idx(7)<CR>", {})
     vim.api.nvim_buf_set_keymap(bufnr, "n", "8", "<Cmd>lua require('nexus').select_menu_item_idx(8)<CR>", {})
     vim.api.nvim_buf_set_keymap(bufnr, "n", "9", "<Cmd>lua require('nexus').select_menu_item_idx(9)<CR>", {})
-    vim.api.nvim_buf_set_keymap(bufnr, "n", "10", "<Cmd>lua require('nexus').select_menu_item_idx(10)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "0", "<Cmd>lua require('nexus').select_menu_item_idx(10)<CR>", {})
   elseif size == 1 then -- only one associated file, open it
     local buf = get_or_create_buffer(associated_files[1])
     if buf ~= nil then
