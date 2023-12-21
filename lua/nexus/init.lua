@@ -5,9 +5,9 @@ M.associations = {}
 M.popup_content = {}
 M.popup_winid = nil
 
-local function create_window()
+local function create_window(size)
   local width = 60
-  local height = 5
+  local height = size
   local borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
   local bufnr = vim.api.nvim_create_buf(false, false)
 
@@ -118,7 +118,7 @@ function M.toggle()
 
   M.popup_content = associated_files
   if size > 1 then -- more than one associated file, open popup
-    local win_info = create_window()
+    local win_info = create_window(size)
     local bufnr = win_info.bufnr
     M.popup_winid = win_info.win_id
     vim.api.nvim_win_set_option(M.popup_winid, "number", true)
