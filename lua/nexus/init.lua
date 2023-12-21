@@ -10,7 +10,7 @@ local function create_window(size)
   local width = 60
   local height = size
   local borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
-  local bufnr = vim.api.nvim_create_buf(false, false)
+  local bufnr = vim.api.nvim_create_buf(false, true)
 
   local win_id, win = popup.create(bufnr, {
     title = "Nexus",
@@ -95,7 +95,6 @@ function M.setup()
     {"c", "h"},
   }
 end
-
 local function get_or_create_buffer(filepath)
   local buf_exists = vim.fn.bufexists(filepath) ~= 0
   if buf_exists then
@@ -132,11 +131,15 @@ function M.select_menu_item_idx(idx)
 end
 
 function M.toggle()
+  if M.popup_winid ~= nil and vim.api.nvim_win_is_valid(M.popup_winid) then
+    M.close_window()
+    return
+  end
+
   local file_name = get_file_name()
   local extension = get_file_extension()
   local associated_extensions = get_associated_extensions(extension)
   local associated_files, size = get_associated_files(file_name, associated_extensions)
-
 
   M.popup_content = associated_files
   M.popup_size = size
@@ -147,7 +150,8 @@ function M.toggle()
     vim.api.nvim_win_set_option(M.popup_winid, "number", true)
     vim.api.nvim_buf_set_name(bufnr, "nexus-menu")
     vim.api.nvim_buf_set_lines(bufnr, 0, #M.popup_content, false, M.popup_content)
-    vim.api.nvim_buf_set_option(bufnr, "buftype", "acwrite")
+
+    vim.api.nvim_buf_set_option(bufnr, "buftype", "nowrite")
     vim.api.nvim_buf_set_option(bufnr, "bufhidden", "delete")
     vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "<Cmd>lua require('nexus').select_menu_item()<CR>", {})
     vim.api.nvim_buf_set_keymap(bufnr, "n", "<Esc>", "<Cmd>lua require('nexus').close_window()<CR>", {})
