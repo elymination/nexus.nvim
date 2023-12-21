@@ -3,6 +3,7 @@ local M = {}
 
 M.associations = {}
 M.popup_content = {}
+M.popup_size = 0
 M.popup_winid = nil
 
 local function create_window(size)
@@ -31,6 +32,15 @@ local function create_window(size)
     bufnr = bufnr,
     win_id = win_id,
   }
+end
+
+function M.close_window()
+  if M.popup_winid ~= nil then
+    vim.api.nvim_win_close(M.popup_winid, true)
+    M.popup_winid = nil
+    M.popup_content = {}
+    M.popup_size = 0
+  end
 end
 
 local get_file_name = function()
@@ -101,6 +111,18 @@ end
 function M.select_menu_item()
   local idx = vim.fn.line(".")
   local buf = get_or_create_buffer(M.popup_content[idx])
+  M.close_window()
+  if buf ~= nil then
+    vim.api.nvim_set_current_buf(buf)
+    vim.api.nvim_buf_set_option(buf, "buflisted", true)
+  end
+end
+
+function M.select_menu_item_idx(idx)
+  if (idx > M.popup_size) then
+    return
+  end
+  local buf = get_or_create_buffer(M.popup_content[idx])
   vim.api.nvim_win_close(M.popup_winid, true)
   if buf ~= nil then
     vim.api.nvim_set_current_buf(buf)
@@ -117,6 +139,7 @@ function M.toggle()
 
 
   M.popup_content = associated_files
+  M.popup_size = size
   if size > 1 then -- more than one associated file, open popup
     local win_info = create_window(size)
     local bufnr = win_info.bufnr
@@ -127,6 +150,18 @@ function M.toggle()
     vim.api.nvim_buf_set_option(bufnr, "buftype", "acwrite")
     vim.api.nvim_buf_set_option(bufnr, "bufhidden", "delete")
     vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "<Cmd>lua require('nexus').select_menu_item()<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "<Esc>", "<Cmd>lua require('nexus').close_window()<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "q", "<Cmd>lua require('nexus').close_window()<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "1", "<Cmd>lua require('nexus').select_menu_item_idx(1)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "2", "<Cmd>lua require('nexus').select_menu_item_idx(2)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "3", "<Cmd>lua require('nexus').select_menu_item_idx(3)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "4", "<Cmd>lua require('nexus').select_menu_item_idx(4)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "5", "<Cmd>lua require('nexus').select_menu_item_idx(5)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "6", "<Cmd>lua require('nexus').select_menu_item_idx(6)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "7", "<Cmd>lua require('nexus').select_menu_item_idx(7)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "8", "<Cmd>lua require('nexus').select_menu_item_idx(8)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "9", "<Cmd>lua require('nexus').select_menu_item_idx(9)<CR>", {})
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "10", "<Cmd>lua require('nexus').select_menu_item_idx(10)<CR>", {})
   elseif size == 1 then -- only one associated file, open it
     local buf = get_or_create_buffer(associated_files[1])
     if buf ~= nil then
