@@ -153,6 +153,7 @@ function M.toggle()
 
     vim.api.nvim_buf_set_option(bufnr, "buftype", "nowrite")
     vim.api.nvim_buf_set_option(bufnr, "bufhidden", "delete")
+    vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
     vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "<Cmd>lua require('nexus').select_menu_item()<CR>", {})
     vim.api.nvim_buf_set_keymap(bufnr, "n", "<Esc>", "<Cmd>lua require('nexus').close_window()<CR>", {})
     vim.api.nvim_buf_set_keymap(bufnr, "n", "q", "<Cmd>lua require('nexus').close_window()<CR>", {})
