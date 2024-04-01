@@ -12,18 +12,21 @@ M.popup_content = {}
 M.popup_size = 0
 M.popup_winid = nil
 M.popup_mode = MODE_NORMAL
+M.is_sticky = true
 
 local function create_window(size)
   local width = 60
   local height = size
   local borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
   local bufnr = vim.api.nvim_create_buf(false, true)
+  local line = M.is_sticky and vim.fn.winline() + 2 or math.floor(((vim.o.lines - height) / 2) - 1)
+  local col = M.is_sticky and vim.fn.wincol() + 1 or math.floor((vim.o.columns - width) / 2)
 
   local win_id, win = popup.create(bufnr, {
     title = NEXUS_WIN_TITLE,
     highlight = "NexusWindow",
-    line = math.floor(((vim.o.lines - height) / 2) - 1),
-    col = math.floor((vim.o.columns - width) / 2),
+    line = line,
+    col = col,
     minwidth = width,
     minheight = height,
     borderchars = borderchars,
