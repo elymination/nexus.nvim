@@ -13,6 +13,7 @@ M.popup_size = 0
 M.popup_winid = nil
 M.popup_mode = MODE_NORMAL
 M.is_sticky = true
+M.show_fullpath = true
 
 local function create_window(size)
   local width = 60
@@ -92,8 +93,12 @@ local get_associated_files = function(name, extensions)
   for _, ext in next, extensions do
     local full_name = name .. "." .. ext -- filename.ext
     if vim.fn.findfile(full_name, file_directory) ~= "" then
-      local full_path = file_directory .. full_name -- path/to/filename.ext
-      table.insert(associated_files, full_path)
+      if M.show_fullpath then
+        local full_path = file_directory .. full_name -- path/to/filename.ext
+        table.insert(associated_files, full_path)
+      else
+        table.insert(associated_files, full_name)
+      end
       size = size + 1
     end
   end
