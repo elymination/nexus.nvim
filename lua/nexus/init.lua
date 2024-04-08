@@ -16,6 +16,7 @@ M.popup_mode = MODE_NORMAL
 M.associations = {}
 M.is_sticky = true
 M.show_fullpath = true
+M.show_wintitle = true
 
 local function create_window(size)
   local width = 60
@@ -26,7 +27,7 @@ local function create_window(size)
   local col = M.is_sticky and vim.fn.wincol() + 1 or math.floor((vim.o.columns - width) / 2)
 
   local win_id, win = popup.create(bufnr, {
-    title = NEXUS_WIN_TITLE,
+    title = M.show_wintitle and NEXUS_WIN_TITLE or "",
     highlight = "NexusWindow",
     line = line,
     col = col,
@@ -120,6 +121,7 @@ function M.setup(config)
     M.associations = config.associations -- cannot be nil. for now.
     M.show_fullpath = config.show_fullpath == nil and true or config.show_fullpath
     M.is_sticky = config.is_sticky == nil and true or config.is_sticky
+    M.show_wintitle = config.show_wintitle == nil and true or config.show_wintitle
   end
 end
 
