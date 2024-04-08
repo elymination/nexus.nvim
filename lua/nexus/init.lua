@@ -7,11 +7,13 @@ local MODE_NORMAL = 0
 local MODE_VERTICAL = 1
 local MODE_HORIZONTAL = 2
 
-M.associations = {}
 M.popup_content = {}
 M.popup_size = 0
 M.popup_winid = nil
 M.popup_mode = MODE_NORMAL
+
+-- configurable through setup
+M.associations = {}
 M.is_sticky = true
 M.show_fullpath = true
 
@@ -105,12 +107,22 @@ local get_associated_files = function(name, extensions)
   return associated_files, size
 end
 
-function M.setup()
-  M.associations = {
-    {"cpp", "h", "hxx", "cxx", "hpp"},
-    {"c", "h"},
-  }
+
+function M.setup(config)
+  if not config then -- default values.
+    M.show_fullpath = true
+    M.is_sticky = true
+    M.associations = {
+      {"cpp", "h", "hxx", "cxx", "hpp"},
+      {"c", "h"},
+    }
+  else
+    M.associations = config.associations -- cannot be nil. for now.
+    M.show_fullpath = config.show_fullpath == nil and true or config.show_fullpath
+    M.is_sticky = config.is_sticky == nil and true or config.is_sticky
+  end
 end
+
 local function get_or_create_buffer(filepath)
   local buf_exists = vim.fn.bufexists(filepath) ~= 0
   if buf_exists then
