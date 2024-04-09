@@ -10,6 +10,8 @@ local MODE_HORIZONTAL = 2
 M.popup_content = {}
 M.popup_size = 0
 M.popup_winid = nil
+M.popup_mode_winid = nil
+M.popup_mode_bufnr = nil
 M.popup_mode = MODE_NORMAL
 
 -- configurable through setup
@@ -22,9 +24,21 @@ local function create_window(size)
   local width = 60
   local height = size
   local borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
+  local modeborderchars = { "─", "│", "─", "│", "│", "│", "╯", "╰" }
   local bufnr = vim.api.nvim_create_buf(false, true)
+  local modebufnr = vim.api.nvim_create_buf(false, true)
   local line = M.is_sticky and vim.fn.winline() + 2 or math.floor(((vim.o.lines - height) / 2) - 1)
   local col = M.is_sticky and vim.fn.wincol() + 1 or math.floor((vim.o.columns - width) / 2)
+
+  local mode_win_id, mode_win = popup.create(modebufnr, {
+    title = "",
+    highlight = "NexusWindow",
+    line = line + size + 1,
+    col = col,
+    minwidth = width,
+    minheight = 1,
+    borderchars = modeborderchars,
+  })
 
   local win_id, win = popup.create(bufnr, {
     title = M.show_wintitle and NEXUS_WIN_TITLE or "",
@@ -37,6 +51,12 @@ local function create_window(size)
   })
 
   vim.api.nvim_win_set_option(
+    mode_win.border.win_id,
+    "winhl",
+    "Normal:NexusBorder"
+  )
+
+  vim.api.nvim_win_set_option(
     win.border.win_id,
     "winhl",
     "Normal:NexusBorder"
@@ -44,14 +64,18 @@ local function create_window(size)
 
   return {
     bufnr = bufnr,
+    modebufnr = modebufnr,
     win_id = win_id,
+    mode_win_id = mode_win_id
   }
 end
 
 function M.close_window()
   if M.popup_winid ~= nil then
     vim.api.nvim_win_close(M.popup_winid, true)
+    vim.api.nvim_win_close(M.popup_mode_winid, true)
     M.popup_winid = nil
+    M.popup_mode_winid = nil
     M.popup_content = {}
     M.popup_size = 0
     M.popup_mode = MODE_NORMAL
@@ -171,9 +195,21 @@ function M.select_menu_item_idx(idx)
   end
 end
 
+function M.get_mode_string()
+  if M.popup_mode == MODE_NORMAL then
+    return "NORMAL"
+  elseif M.popup_mode == MODE_VERTICAL then
+    return "VERTICAL"
+  elseif M.popup_mode == MODE_HORIZONTAL then
+    return "HORIZONTAL"
+  end
+  return "NORMAL"
+end
+
 function M.set_mode(mode)
   if M.popup_winid ~= nil then
     M.popup_mode = mode
+    vim.api.nvim_buf_set_lines(M.popup_mode_bufnr, 0, -1, true, {M.get_mode_string()})
   end
 end
 
@@ -204,6 +240,8 @@ function M.toggle()
     local win_info = create_window(size)
     local bufnr = win_info.bufnr
     M.popup_winid = win_info.win_id
+    M.popup_mode_winid = win_info.mode_win_id
+    M.popup_mode_bufnr = win_info.modebufnr
     vim.api.nvim_win_set_option(M.popup_winid, "number", true)
     vim.api.nvim_buf_set_name(bufnr, "nexus-menu")
     vim.api.nvim_buf_set_lines(bufnr, 0, #M.popup_content, false, M.popup_content)
@@ -229,6 +267,11 @@ function M.toggle()
     vim.api.nvim_buf_set_keymap(bufnr, "n", "n", "<Cmd>lua require('nexus').set_mode(0)<CR>", {}) -- normal
     vim.api.nvim_buf_set_keymap(bufnr, "n", "v", "<Cmd>lua require('nexus').toggle_mode(1)<CR>", {}) -- vertical
     vim.api.nvim_buf_set_keymap(bufnr, "n", "h", "<Cmd>lua require('nexus').toggle_mode(2)<CR>", {}) -- horizontal
+
+    vim.api.nvim_buf_set_name(M.popup_mode_bufnr, "nexus-menu-mode")
+    vim.api.nvim_buf_set_option(M.popup_mode_bufnr, "buftype", "nowrite")
+    vim.api.nvim_buf_set_option(M.popup_mode_bufnr, "bufhidden", "delete")
+    vim.api.nvim_buf_set_lines(M.popup_mode_bufnr, 0, -1, true, {M.get_mode_string()})
 
   elseif size == 1 then -- only one associated file, open it
     local buf = get_or_create_buffer(associated_files[1])
