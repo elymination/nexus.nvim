@@ -13,6 +13,8 @@ M.popup_winid = nil
 M.popup_mode_winid = nil
 M.popup_mode_bufnr = nil
 M.popup_mode = MODE_NORMAL
+M.longest_filename = 0
+M.windows_width = 0
 
 -- configurable through setup
 M.associations = {}
@@ -21,7 +23,8 @@ M.show_fullpath = true
 M.show_wintitle = true
 
 local function create_window(size)
-  local width = 60
+  M.windows_width = M.longest_filename + 8 -- 4 for line number margin and 4 for symmetry
+  local width = M.windows_width
   local height = size
   local borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
   local modeborderchars = { "─", "│", "─", "│", "│", "│", "╯", "╰" }
@@ -132,6 +135,13 @@ local get_associated_files = function(name, extensions)
   return associated_files, size
 end
 
+local get_longest_filename = function(filenames)
+  local longest = 0
+  for _, name in ipairs(filenames) do
+    longest = math.max(string.len(name), longest)
+  end
+  return longest
+end
 
 function M.setup(config)
   if not config then -- default values.
@@ -195,15 +205,29 @@ function M.select_menu_item_idx(idx)
   end
 end
 
-function M.get_mode_string()
-  if M.popup_mode == MODE_NORMAL then
-    return "NORMAL"
-  elseif M.popup_mode == MODE_VERTICAL then
-    return "VERTICAL"
-  elseif M.popup_mode == MODE_HORIZONTAL then
-    return "HORIZONTAL"
+local construct_spaces_string = function(size)
+  local str = ""
+  local i = 0
+  while i < size do
+    str = str .. " "
+    i = i + 1
   end
-  return "NORMAL"
+  return str
+end
+
+function M.get_mode_string()
+  local needed_spaces = M.windows_width / 2
+  if M.popup_mode == MODE_NORMAL then
+    needed_spaces = needed_spaces - string.len("NORMAL") / 2
+    return construct_spaces_string(needed_spaces) .. "NORMAL"
+  elseif M.popup_mode == MODE_VERTICAL then
+    needed_spaces = needed_spaces - string.len("VERTICAL") / 2
+    return construct_spaces_string(needed_spaces) .. "VERTICAL"
+  elseif M.popup_mode == MODE_HORIZONTAL then
+    needed_spaces = needed_spaces - string.len("HORIZONTAL") / 2
+    return construct_spaces_string(needed_spaces) .. "HORIZONTAL"
+  end
+  return "UNKNOWN_MODE"
 end
 
 function M.set_mode(mode)
@@ -233,6 +257,8 @@ function M.toggle()
   local extension = get_file_extension()
   local associated_extensions = get_associated_extensions(extension)
   local associated_files, size = get_associated_files(file_name, associated_extensions)
+
+  M.longest_filename = get_longest_filename(associated_files)
 
   M.popup_content = associated_files
   M.popup_size = size
